@@ -2,11 +2,7 @@ import { useState } from "react";
 import NoteList from "../NoteList/NoteList";
 import css from "./App.module.css";
 import Pagination from "../Pagination/Pagination";
-import {
-  useCreateNote,
-  useDeleteNote,
-  useFetchNotes,
-} from "../../queries/notes";
+import { useFetchNotes } from "../../queries/notes";
 import Modal from "../Modal/Modal";
 import NoteForm from "../NoteForm/NoteForm";
 import SearchBox from "../SearchBox/SearchBox";
@@ -33,9 +29,6 @@ function App() {
     search,
   );
 
-  const createNoteMutation = useCreateNote();
-  const deleteNoteMutation = useDeleteNote();
-
   const notes = data?.notes ?? [];
   const totalPages = data?.totalPages ?? 0;
 
@@ -48,11 +41,13 @@ function App() {
     <div className={css.app}>
       <header className={css.toolbar}>
         <SearchBox onSearch={handleSearch} />
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
+        {totalPages > 1 && (
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+          />
+        )}
         <button className={css.button} onClick={openModal}>
           Create note +
         </button>
@@ -63,15 +58,10 @@ function App() {
         <ErrorMessage message={`Something went wrong! ${error.message}`} />
       )}
       {isSuccess && notes.length === 0 && <EmptyNotes />}
-      {isSuccess && notes.length > 0 && (
-        <NoteList notes={notes} onDelete={deleteNoteMutation.mutateAsync} />
-      )}
+      {isSuccess && notes.length > 0 && <NoteList notes={notes} />}
       {isModalOpen && (
         <Modal onClose={closeModal}>
-          <NoteForm
-            onClose={closeModal}
-            onCreate={createNoteMutation.mutateAsync}
-          />
+          <NoteForm onClose={closeModal} />
         </Modal>
       )}
     </div>

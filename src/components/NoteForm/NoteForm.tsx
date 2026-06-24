@@ -3,6 +3,8 @@ import css from "./NoteForm.module.css";
 import { useId } from "react";
 import * as Yup from "yup";
 import toast from "react-hot-toast";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { createNote } from "../../services/noteService";
 
 interface NoteFormValues {
   title: string;
@@ -21,9 +23,7 @@ const NoteFormSchema = Yup.object().shape({
     .min(3, "Title must be at least 3 characters")
     .max(50, "Title is too long")
     .required("Title is required"),
-  content: Yup.string()
-    .max(500, "Content is too long")
-    .required("Content is required"),
+  content: Yup.string().max(500, "Content is too long").optional(),
   tag: Yup.string()
     .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"])
     .required("Choose the tag"),
@@ -31,17 +31,35 @@ const NoteFormSchema = Yup.object().shape({
 
 interface NoteFormProps {
   onClose: () => void;
-  onCreate: (values: NoteFormValues) => Promise<unknown>;
 }
 
-export default function NoteForm({ onClose, onCreate }: NoteFormProps) {
+export default function NoteForm({ onClose }: NoteFormProps) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: createNote,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["notes"],
+      });
+
+      toast.success("Note created!");
+      onClose();
+    },
+
+    onError: () => {
+      toast.error("Failed to create note");
+    },
+  });
+
   const fieldId = useId();
   const handleSubmit = async (
     values: NoteFormValues,
     actions: FormikHelpers<NoteFormValues>,
   ) => {
     try {
-      await onCreate(values);
+      await mutation.mutateAsync(values);
       toast.success("Note created!");
       actions.resetForm();
       onClose();

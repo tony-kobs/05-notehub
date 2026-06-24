@@ -1,20 +1,33 @@
 import toast from "react-hot-toast";
 import type { Note } from "../../types/note";
 import css from "./NoteList.module.css";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { deleteNote } from "../../services/noteService";
 
 interface NoteListProps {
   notes: Note[];
-  onDelete: (id: string) => Promise<unknown>;
 }
 
-export default function NoteList({ notes, onDelete }: NoteListProps) {
-  const handleDelete = async (id: string) => {
-    try {
-      await onDelete(id);
+export default function NoteList({ notes }: NoteListProps) {
+  const queryClient = useQueryClient();
+
+  const mutation = useMutation({
+    mutationFn: deleteNote,
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["notes"],
+      });
+
       toast.success("Note deleted");
-    } catch {
+    },
+
+    onError: () => {
       toast.error("Failed to delete note");
-    }
+    },
+  });
+  const handleDelete = async (id: string) => {
+    await mutation.mutateAsync(id);
   };
   return (
     <ul className={css.list}>
@@ -27,6 +40,7 @@ export default function NoteList({ notes, onDelete }: NoteListProps) {
             <button
               className={css.button}
               onClick={() => handleDelete(note.id)}
+              type="button"
             >
               Delete
             </button>
