@@ -60,11 +60,8 @@ export default function NoteForm({ onClose }: NoteFormProps) {
   ) => {
     try {
       await mutation.mutateAsync(values);
-      toast.success("Note created!");
+
       actions.resetForm();
-      onClose();
-    } catch {
-      toast.error("Failed to create note");
     } finally {
       actions.setSubmitting(false);
     }
