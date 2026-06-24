@@ -4,7 +4,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { createNote, deleteNote, fetchNotes } from "../services/noteServices";
+import { createNote, deleteNote, fetchNotes } from "../services/noteService";
 
 export function useFetchNotes(page: number, search: string) {
   return useQuery({
